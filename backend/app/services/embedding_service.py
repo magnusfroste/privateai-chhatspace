@@ -29,6 +29,8 @@ class EmbeddingService:
             )
             response.raise_for_status()
             data = response.json()
+            if "data" not in data:
+                raise ValueError(f"Embedder returned unexpected response: {data}")
             return data["data"][0]["embedding"]
     
     async def embed_texts(self, texts: List[str]) -> List[List[float]]:
@@ -44,6 +46,8 @@ class EmbeddingService:
             )
             response.raise_for_status()
             data = response.json()
+            if "data" not in data:
+                raise ValueError(f"Embedder returned unexpected response: {data}")
             return [item["embedding"] for item in data["data"]]
 
 
