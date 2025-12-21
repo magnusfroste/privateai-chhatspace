@@ -43,3 +43,21 @@ async def get_db():
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Run migrations for existing databases
+    await run_migrations()
+
+
+async def run_migrations():
+    """Run database migrations for existing databases"""
+    from sqlalchemy import text
+    
+    async with engine.begin() as conn:
+        # Check if admin_pinned column exists in workspaces table
+        try:
+            result = await conn.execute(text("SELECT admin_pinned FROM workspaces LIMIT 1"))
+        except Exception:
+            # Column doesn't exist, add it
+            print("Adding admin_pinned column to workspaces table...")
+            await conn.execute(text("ALTER TABLE workspaces ADD COLUMN admin_pinned BOOLEAN DEFAULT 0"))
+            print("Migration complete: admin_pinned column added")
