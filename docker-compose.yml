@@ -1,0 +1,13 @@
+services:
+  autoversio:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - autoversio_data:/data
+    restart: unless-stopped
+
+volumes:
+  autoversio_data:

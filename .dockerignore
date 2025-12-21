@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Build
+static/
+
+# IDE
+.idea/
+.vscode/
+
+# Data
+data/
+*.db
+
+# Docs
+*.md
+!README.md
+
+# OS
+.DS_Store
