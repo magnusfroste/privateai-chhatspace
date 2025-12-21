@@ -85,6 +85,11 @@ class LLMService:
                     "IMPORTANT: The following contains CURRENT web search results that are MORE UP-TO-DATE than your training data. "
                     "You MUST base your answer on this information. Do NOT use your own knowledge about current events - use ONLY the provided search results. "
                     "Summarize and present the information from the search results in a clear, helpful way.\n\n"
+                    "FORMAT INSTRUCTIONS:\n"
+                    "- At the END of your response, add a '---' separator followed by a 'Källor:' (Sources) section\n"
+                    "- List the sources mentioned in the search results\n"
+                    "- Use format: 🔍 **[Source Name]** - brief description\n"
+                    "- This helps users know the information came from web search\n\n"
                     + rag_context
                 )
             else:
