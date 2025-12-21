@@ -351,8 +351,8 @@ export default function Chat() {
       </div>
 
       {showSettings && currentWorkspace && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-dark-800 rounded-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-800 rounded-xl w-full max-w-2xl">
             <div className="flex items-center justify-between p-4 border-b border-dark-700">
               <h3 className="text-lg font-medium text-white">
                 Workspace Settings

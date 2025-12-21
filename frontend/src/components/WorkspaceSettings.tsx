@@ -46,7 +46,7 @@ export default function WorkspaceSettings({
   }
 
   return (
-    <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+    <div className="p-6 space-y-5">
       <div>
         <label className="block text-sm font-medium text-dark-300 mb-1">Name</label>
         <input
@@ -73,8 +73,8 @@ export default function WorkspaceSettings({
         <textarea
           value={systemPrompt}
           onChange={(e) => setSystemPrompt(e.target.value)}
-          rows={4}
-          className="w-full px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-blue-500 resize-none"
+          rows={8}
+          className="w-full px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-blue-500 resize-y"
           placeholder="Instructions for the AI assistant..."
         />
       </div>
