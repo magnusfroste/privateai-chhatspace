@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import os
 from sqlalchemy import select
@@ -74,12 +75,37 @@ async def qdrant_health_check():
         raise HTTPException(status_code=503, detail=str(e))
 
 
-# Try multiple static paths for different environments
+# Find static directory
+static_dir = None
 static_paths = [
     "/app/static",  # Docker container
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "static")),  # Local dev
 ]
-for static_dir in static_paths:
-    if os.path.exists(static_dir) and os.path.isdir(static_dir):
-        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+for path in static_paths:
+    if os.path.exists(path) and os.path.isdir(path):
+        static_dir = path
         break
+
+# Mount static files for assets
+if static_dir:
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_dir, "assets")), name="assets")
+    
+    # SPA fallback - serve index.html for all non-API routes
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        # Don't serve index.html for API routes
+        if full_path.startswith("api/"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        index_path = os.path.join(static_dir, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        
+        # Try to serve static file
+        file_path = os.path.join(static_dir, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        # Fallback to index.html for SPA routing
+        return FileResponse(index_path)
