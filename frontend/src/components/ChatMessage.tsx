@@ -2,7 +2,7 @@ import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { Copy, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Copy, Check, ChevronDown, ChevronUp, Globe, ExternalLink } from 'lucide-react'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
@@ -91,6 +91,35 @@ function UserMessage({ content }: { content: string }) {
   )
 }
 
+function SourcesSection({ sources }: { sources: string }) {
+  const lines = sources.split('\n').filter(line => line.trim())
+  
+  return (
+    <div className="mt-4 pt-3 border-t border-dark-700">
+      <div className="flex items-center gap-2 text-xs text-dark-400 mb-2">
+        <Globe className="w-3.5 h-3.5" />
+        <span className="font-medium uppercase tracking-wide">Källor</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {lines.map((line, idx) => {
+          const cleanLine = line.replace(/^[🔍\-\*•]\s*/, '').trim()
+          if (!cleanLine) return null
+          
+          return (
+            <div
+              key={idx}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-dark-800 hover:bg-dark-700 rounded-full text-xs text-dark-300 transition-colors cursor-default"
+            >
+              <ExternalLink className="w-3 h-3 text-dark-500" />
+              <span>{cleanLine}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function ChatMessage({ role, content }: ChatMessageProps) {
   const [copied, setCopied] = useState(false)
   const isUser = role === 'user'
@@ -99,6 +128,24 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
     await navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Split content into main content and sources section
+  const hasSourcesSection = content.includes('---') && content.toLowerCase().includes('källor')
+  let mainContent = content
+  let sourcesContent = ''
+  
+  if (hasSourcesSection) {
+    const parts = content.split(/\n---\n/)
+    if (parts.length >= 2) {
+      mainContent = parts[0]
+      // Find the Källor section in remaining parts
+      const sourcePart = parts.slice(1).join('\n---\n')
+      const källorMatch = sourcePart.match(/källor[:\s]*([\s\S]*)/i)
+      if (källorMatch) {
+        sourcesContent = källorMatch[1].trim()
+      }
+    }
   }
 
   return (
@@ -132,12 +179,15 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
                     },
                   }}
                 >
-                  {content}
+                  {mainContent}
                 </ReactMarkdown>
               ) : (
                 <span className="inline-block w-2 h-4 bg-dark-400 animate-pulse" />
               )}
             </div>
+            
+            {sourcesContent && <SourcesSection sources={sourcesContent} />}
+            
             {content && (
               <button
                 onClick={handleCopyMessage}
