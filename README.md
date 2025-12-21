@@ -1,6 +1,6 @@
 # Privateai-chatspace
 
-A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generation) support. Inspired by AnythingLLM and OpenWebUI, but simpler and focused on local LLM inference.
+A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generation) support. Successfully deployed on Easypanel with remote LLM and embedding services integration. Inspired by AnythingLLM and OpenWebUI, but simpler and focused on quality functionality.
 
 ## Features
 
@@ -9,8 +9,8 @@ A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generat
 - **RAG Support** - Upload documents, convert to markdown, embed to Qdrant
 - **File Upload** - PDF, DOCX, TXT, MD support with automatic conversion
 - **Admin Panel** - User management, chat logs for debugging/development
-- **Local LLM** - Connects to vLLM for inference
-- **Local Embeddings** - Uses Qwen 8b embedder
+- **Remote LLM Integration** - Connects to external OpenAI-compatible LLM APIs
+- **Remote Embeddings** - Uses external embedding services for vector generation
 - **Easypanel Ready** - Single container deployment with persistent storage
 
 ## Quick Start
@@ -29,11 +29,15 @@ Default credentials:
 
 ### Easypanel Deployment
 
+**Status**: Successfully deployed and operational.
+
 1. Create a new App in Easypanel
-2. Choose "Docker Image" or connect to your GitHub repo
-3. Set environment variables (see below)
-4. Mount persistent volume at `/data`
-5. Expose port 8000
+2. Connect to GitHub repo: `https://github.com/magnusfroste/privateai-chatspace`
+3. Build method: Git (automatic builds)
+4. Set environment variables (copy from below)
+5. Mount persistent volume at `/data`
+6. Expose port 8000
+7. Deploy and access the generated URL
 
 ## Environment Variables
 
@@ -55,7 +59,7 @@ Default credentials:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      AutoVersio Container                    │
+│                   Privateai-chatspace Container               │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │ FastAPI (Uvicorn)                                       ││
 │  │ - REST API (/api/*)                                     ││
