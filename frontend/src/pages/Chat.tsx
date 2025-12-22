@@ -29,7 +29,7 @@ export default function Chat() {
   const [notesRefreshTrigger, setNotesRefreshTrigger] = useState(0)
   const [showDocsSidebar, setShowDocsSidebar] = useState(false)
   const [docsExpanded, setDocsExpanded] = useState(false)
-  const [docsRefreshTrigger, setDocsRefreshTrigger] = useState(0)
+  const [docsRefreshTrigger] = useState(0)
   const [useRag, setUseRag] = useState(true)
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
