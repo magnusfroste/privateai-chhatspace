@@ -383,6 +383,40 @@ async def test_embedder_connection(
         return {"status": "error", "url": settings.EMBEDDER_BASE_URL, "error": str(e)}
 
 
+@router.get("/test/marker")
+async def test_marker_connection(
+    admin: User = Depends(get_current_admin)
+):
+    """Test Marker API connection for OCR"""
+    if not settings.OCR_SERVICE_URL:
+        return {
+            "status": "not_configured",
+            "message": "OCR_SERVICE_URL not set. Using PyPDF2 fallback."
+        }
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(f"{settings.OCR_SERVICE_URL}/health")
+            if response.status_code == 200:
+                return {
+                    "status": "connected",
+                    "url": settings.OCR_SERVICE_URL,
+                    "message": "Marker API is available for PDF OCR"
+                }
+            else:
+                return {
+                    "status": "error",
+                    "url": settings.OCR_SERVICE_URL,
+                    "error": f"HTTP {response.status_code}"
+                }
+    except Exception as e:
+        return {
+            "status": "error",
+            "url": settings.OCR_SERVICE_URL,
+            "error": str(e)
+        }
+
+
 @router.get("/test/qdrant")
 async def test_qdrant_connection(
     admin: User = Depends(get_current_admin)

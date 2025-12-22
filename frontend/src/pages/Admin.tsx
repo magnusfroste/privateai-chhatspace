@@ -70,7 +70,8 @@ interface SystemOverview {
 
 interface TestResult {
   status: string
-  url: string
+  url?: string
+  message?: string
   models?: string[]
   configured_model?: string
   embedding_dimension?: number
@@ -89,8 +90,8 @@ export default function Admin() {
   const [overview, setOverview] = useState<SystemOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [testResults, setTestResults] = useState<{ llm?: TestResult; embedder?: TestResult; qdrant?: TestResult }>({})
-  const [testing, setTesting] = useState<{ llm: boolean; embedder: boolean; qdrant: boolean }>({ llm: false, embedder: false, qdrant: false })
+  const [testResults, setTestResults] = useState<{ llm?: TestResult; embedder?: TestResult; qdrant?: TestResult; marker?: TestResult }>({})
+  const [testing, setTesting] = useState<{ llm: boolean; embedder: boolean; qdrant: boolean; marker: boolean }>({ llm: false, embedder: false, qdrant: false, marker: false })
 
   const [showNewUser, setShowNewUser] = useState(false)
   const [newUser, setNewUser] = useState({ email: '', password: '', name: '', role: 'user' })
@@ -138,7 +139,7 @@ export default function Admin() {
     }
   }
 
-  const testService = async (service: 'llm' | 'embedder' | 'qdrant') => {
+  const testService = async (service: 'llm' | 'embedder' | 'qdrant' | 'marker') => {
     setTesting(prev => ({ ...prev, [service]: true }))
     setTestResults(prev => ({ ...prev, [service]: undefined }))
     try {
@@ -147,6 +148,8 @@ export default function Admin() {
         result = await api.admin.testLlm()
       } else if (service === 'embedder') {
         result = await api.admin.testEmbedder()
+      } else if (service === 'marker') {
+        result = await api.admin.testMarker()
       } else {
         result = await api.admin.testQdrant()
       }
@@ -276,7 +279,7 @@ export default function Admin() {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[health.llm, health.embedder, health.qdrant].map((service) => (
                       <div key={service.name} className="bg-dark-800 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-2">
@@ -339,6 +342,35 @@ export default function Admin() {
                         )}
                       </div>
                     ))}
+                    
+                    {/* Marker OCR Service */}
+                    <div className="bg-dark-800 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Server className="w-5 h-5 text-dark-400" />
+                          <span className="font-medium text-white">Marker OCR</span>
+                        </div>
+                        {testResults.marker?.status === 'connected' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                        {testResults.marker?.status === 'not_configured' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
+                        {testResults.marker?.status === 'error' && <XCircle className="w-5 h-5 text-red-500" />}
+                      </div>
+                      {testResults.marker?.url && (
+                        <p className="text-xs text-dark-500 truncate mb-1">{testResults.marker.url}</p>
+                      )}
+                      {testResults.marker?.message && (
+                        <p className="text-xs text-dark-400 mb-2">{testResults.marker.message}</p>
+                      )}
+                      {testResults.marker?.error && (
+                        <p className="text-xs text-red-400 truncate mb-2">{testResults.marker.error}</p>
+                      )}
+                      <button
+                        onClick={() => testService('marker')}
+                        disabled={testing.marker}
+                        className="mt-2 w-full px-2 py-1 bg-dark-700 hover:bg-dark-600 text-xs text-dark-300 rounded disabled:opacity-50"
+                      >
+                        {testing.marker ? 'Testing...' : 'Test OCR Service'}
+                      </button>
+                    </div>
                   </div>
 
                   <div>

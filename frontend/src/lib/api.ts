@@ -192,6 +192,12 @@ export const api = {
       total_collections?: number
       error?: string
     }>('/admin/test/qdrant'),
+    testMarker: () => fetchApi<{
+      status: string
+      url?: string
+      message?: string
+      error?: string
+    }>('/admin/test/marker'),
     toggleWorkspacePin: (workspaceId: number) => fetchApi<{ id: number; admin_pinned: boolean }>(`/admin/workspaces/${workspaceId}/pin`, { method: 'PUT' }),
   },
 }
