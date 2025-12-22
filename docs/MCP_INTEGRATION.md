@@ -63,7 +63,7 @@ User: "Explain quantum physics"
 {
   "klavis-firecrawl": {
     "type": "streamable",
-    "url": "https://firecrawl-websearch-mcp-server.klavis.ai/mcp/?instance_id=02c1b9ba-7d0d-41be-9f03-ff15084c3c9d"
+    "url": "https://firecrawl-websearch-mcp-server.klavis.ai/mcp/?instance_id=abc"
   }
 }
 ```
