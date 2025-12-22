@@ -187,6 +187,16 @@ export default function ChatMessage({ role, content, onSendToNotes }: ChatMessag
                         </code>
                       )
                     },
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline transition-colors"
+                      >
+                        {children}
+                      </a>
+                    ),
                   }}
                 >
                   {mainContent}
