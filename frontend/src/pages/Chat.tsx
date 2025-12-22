@@ -468,7 +468,18 @@ export default function Chat() {
           onToggleExpand={() => setDocsExpanded(!docsExpanded)}
           onClose={() => setShowDocsSidebar(false)}
           refreshTrigger={docsRefreshTrigger}
-          rightOffset={notesWidth}
+          rightOffset={notesWidth + settingsWidth}
+        />
+      )}
+
+      {currentWorkspace && (
+        <WorkspaceSettingsSidebar
+          workspace={currentWorkspace}
+          isOpen={showSettingsSidebar}
+          isExpanded={settingsExpanded}
+          onToggleExpand={() => setSettingsExpanded(!settingsExpanded)}
+          onClose={() => setShowSettingsSidebar(false)}
+          rightOffset={notesWidth + docsWidth}
         />
       )}
     </div>

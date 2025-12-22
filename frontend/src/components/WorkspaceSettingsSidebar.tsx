@@ -17,6 +17,7 @@ interface WorkspaceSettingsSidebarProps {
   isExpanded: boolean
   onToggleExpand: () => void
   onClose: () => void
+  rightOffset?: number
 }
 
 export default function WorkspaceSettingsSidebar({
@@ -25,6 +26,7 @@ export default function WorkspaceSettingsSidebar({
   isExpanded,
   onToggleExpand,
   onClose,
+  rightOffset = 0,
 }: WorkspaceSettingsSidebarProps) {
   const [name, setName] = useState(workspace.name)
   const [description, setDescription] = useState(workspace.description || '')
@@ -66,7 +68,10 @@ export default function WorkspaceSettingsSidebar({
   const width = isExpanded ? 'w-[800px]' : 'w-64'
 
   return (
-    <div className={`fixed right-0 top-0 h-full ${width} bg-dark-800 border-l border-dark-700 flex flex-col z-40 transition-all duration-300`}>
+    <div 
+      className={`fixed top-0 h-full ${width} bg-dark-800 border-l border-dark-700 flex flex-col z-40 transition-all duration-300`}
+      style={{ right: `${rightOffset}px` }}
+    >
       {/* Header */}
       <div className="h-14 border-b border-dark-700 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
