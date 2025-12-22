@@ -153,9 +153,13 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
       const file = new File([blob], `${note.title}.md`, { type: 'text/markdown' })
       
       // Upload to documents
-      await api.documents.upload(workspaceId, file)
+      const uploadedDoc = await api.documents.upload(workspaceId, file)
+      
+      // Automatically embed the document to RAG
+      await api.documents.embed(uploadedDoc.id)
+      
       setRagAttachedNotes(prev => new Set([...prev, note.id]))
-      alert(`"${note.title}" added to workspace documents!`)
+      alert(`"${note.title}" added and embedded to RAG!`)
     } catch (err) {
       console.error('Failed to attach to RAG:', err)
       alert('Failed to add note to documents')
