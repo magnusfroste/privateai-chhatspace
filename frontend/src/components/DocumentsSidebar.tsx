@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { api, Document } from '../lib/api'
 import { 
-  FileText, 
+  Database, 
   Trash2, 
   X, 
   Loader2,
@@ -9,7 +9,8 @@ import {
   ChevronRight,
   Download,
   Eye,
-  Upload
+  Upload,
+  FileText
 } from 'lucide-react'
 
 interface DocumentsSidebarProps {
@@ -150,8 +151,8 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
           >
             {isExpanded ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </button>
-          <FileText className="w-5 h-5 text-green-400" />
-          {isExpanded && <h2 className="text-lg font-medium text-white">Documents</h2>}
+          <Database className="w-5 h-5 text-green-400" />
+          {isExpanded && <h2 className="text-lg font-medium text-white">RAG Database</h2>}
         </div>
         <div className="flex items-center gap-2">
           <input

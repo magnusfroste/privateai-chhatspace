@@ -10,7 +10,7 @@ import WorkspaceSettingsSidebar from '../components/WorkspaceSettingsSidebar'
 import DocumentManager from '../components/DocumentManager'
 import NotesSidebar from '../components/NotesSidebar'
 import DocumentsSidebar from '../components/DocumentsSidebar'
-import { Settings, FileText, X, StickyNote } from 'lucide-react'
+import { Settings, Database, X, StickyNote } from 'lucide-react'
 
 interface Message {
   id: number
@@ -336,9 +336,9 @@ export default function Chat() {
                         ? 'text-green-400' 
                         : 'text-dark-400 hover:text-white'
                   }`}
-                  title={hasEmbeddedDocs ? 'Documents (embedded)' : 'Documents'}
+                  title={hasEmbeddedDocs ? 'RAG Database (embedded)' : 'RAG Database'}
                 >
-                  <FileText className="w-5 h-5" />
+                  <Database className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setShowSettingsSidebar(!showSettingsSidebar)}
