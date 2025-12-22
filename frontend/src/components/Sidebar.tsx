@@ -16,6 +16,8 @@ import {
   X,
   Plus,
   MoreVertical,
+  ChevronLeft,
+  Menu,
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -44,6 +46,7 @@ export default function Sidebar() {
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<number | null>(null)
   const [editingWorkspaceName, setEditingWorkspaceName] = useState('')
   const [openMenuId, setOpenMenuId] = useState<string | number | null>(null)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   useEffect(() => {
     loadWorkspaces()
@@ -176,23 +179,32 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="w-64 bg-dark-950 border-r border-dark-700 flex flex-col h-full">
-      <div className="p-4 border-b border-dark-700">
-        <h1 className="text-xl font-bold text-white">AutoVersio</h1>
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-dark-950 border-r border-dark-700 flex flex-col h-full transition-all duration-300`}>
+      <div className="p-4 border-b border-dark-700 flex items-center justify-between">
+        {!isCollapsed && <h1 className="text-xl font-bold text-white">AutoVersio</h1>}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1 text-dark-400 hover:text-white hover:bg-dark-700 rounded"
+          title={isCollapsed ? 'Expand' : 'Collapse'}
+        >
+          {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
-        <div className="flex items-center justify-between mb-2 px-2">
-          <span className="text-xs font-medium text-dark-400 uppercase">
-            Workspaces
-          </span>
-          <button
-            onClick={() => setShowNewWorkspace(true)}
-            className="p-1 text-dark-400 hover:text-white hover:bg-dark-700 rounded"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
+        {!isCollapsed && (
+          <div className="flex items-center justify-between mb-2 px-2">
+            <span className="text-xs font-medium text-dark-400 uppercase">
+              Workspaces
+            </span>
+            <button
+              onClick={() => setShowNewWorkspace(true)}
+              className="p-1 text-dark-400 hover:text-white hover:bg-dark-700 rounded"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {showNewWorkspace && (
           <div className="mb-2 p-2 bg-dark-800 rounded-lg">
@@ -226,7 +238,7 @@ export default function Sidebar() {
         {workspaces.map((workspace) => (
           <div key={workspace.id} className="mb-1 group/ws">
             <div className="flex items-center">
-              {editingWorkspaceId === workspace.id ? (
+              {editingWorkspaceId === workspace.id && !isCollapsed ? (
                 <div className="flex-1 flex items-center gap-1 px-2 py-1">
                   <input
                     type="text"
@@ -258,64 +270,69 @@ export default function Sidebar() {
                     onClick={() => {
                       setCurrentWorkspace(workspace)
                       setCurrentChat(null)
-                      toggleWorkspace(workspace.id)
+                      if (!isCollapsed) {
+                        toggleWorkspace(workspace.id)
+                      }
                     }}
-                    className={`flex-1 flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-colors ${
+                    className={`flex-1 flex items-center ${isCollapsed ? 'justify-center' : 'gap-2'} px-2 py-2 rounded-lg text-left transition-colors ${
                       currentWorkspace?.id === workspace.id
                         ? 'bg-dark-700 text-white'
                         : 'text-dark-300 hover:bg-dark-800 hover:text-white'
                     }`}
+                    title={isCollapsed ? workspace.name : undefined}
                   >
-                    {expandedWorkspaces.has(workspace.id) ? (
+                    {!isCollapsed && (expandedWorkspaces.has(workspace.id) ? (
                       <ChevronDown className="w-4 h-4 flex-shrink-0" />
                     ) : (
                       <ChevronRight className="w-4 h-4 flex-shrink-0" />
-                    )}
+                    ))}
                     <FolderOpen className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate text-sm">{workspace.name}</span>
+                    {!isCollapsed && <span className="truncate text-sm">{workspace.name}</span>}
                   </button>
-                  <div className="relative flex-shrink-0 opacity-0 group-hover/ws:opacity-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setOpenMenuId(openMenuId === `ws-${workspace.id}` ? null : `ws-${workspace.id}`)
-                      }}
-                      className="p-1 text-dark-400 hover:text-white"
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                    {openMenuId === `ws-${workspace.id}` && (
-                      <div className="absolute right-0 top-6 z-50 bg-dark-700 border border-dark-600 rounded-lg shadow-lg py-1 min-w-[120px]">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setEditingWorkspaceId(workspace.id)
-                            setEditingWorkspaceName(workspace.name)
-                            setOpenMenuId(null)
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-200 hover:bg-dark-600 hover:text-white"
-                        >
-                          <Pencil className="w-4 h-4" />
-                          Rename
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            handleDeleteWorkspace(workspace.id, e)
-                            setOpenMenuId(null)
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-dark-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  {!isCollapsed && (
+                    <div className="relative flex-shrink-0 opacity-0 group-hover/ws:opacity-100">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setOpenMenuId(openMenuId === `ws-${workspace.id}` ? null : `ws-${workspace.id}`)
+                        }}
+                        className="p-1 text-dark-400 hover:text-white"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                      {openMenuId === `ws-${workspace.id}` && (
+                        <div className="absolute right-0 top-6 z-50 bg-dark-700 border border-dark-600 rounded-lg shadow-lg py-1 min-w-[120px]">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingWorkspaceId(workspace.id)
+                              setEditingWorkspaceName(workspace.name)
+                              setOpenMenuId(null)
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-dark-200 hover:bg-dark-600 hover:text-white"
+                          >
+                            <Pencil className="w-4 h-4" />
+                            Rename
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              handleDeleteWorkspace(workspace.id, e)
+                              setOpenMenuId(null)
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-dark-600"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>
 
-            {expandedWorkspaces.has(workspace.id) &&
+            {!isCollapsed && expandedWorkspaces.has(workspace.id) &&
               currentWorkspace?.id === workspace.id && chats.length > 0 && (
                 <div className="ml-6 mt-1 space-y-1">
                   {chats.map((chat) => (
@@ -407,28 +424,51 @@ export default function Sidebar() {
       </div>
 
       <div className="p-2 border-t border-dark-700">
-        {isAdmin() && (
-          <button
-            onClick={() => navigate('/admin')}
-            className="w-full flex items-center gap-2 px-3 py-2 text-dark-300 hover:text-white hover:bg-dark-800 rounded-lg text-sm"
-          >
-            <Settings className="w-4 h-4" />
-            Admin Panel
-          </button>
+        {isCollapsed ? (
+          <div className="flex flex-col items-center gap-2">
+            {isAdmin() && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="p-2 text-dark-300 hover:text-white hover:bg-dark-800 rounded-lg"
+                title="Admin Panel"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            )}
+            <button
+              onClick={handleLogout}
+              className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            {isAdmin() && (
+              <button
+                onClick={() => navigate('/admin')}
+                className="w-full flex items-center gap-2 px-3 py-2 text-dark-300 hover:text-white hover:bg-dark-800 rounded-lg text-sm"
+              >
+                <Settings className="w-4 h-4" />
+                Admin Panel
+              </button>
+            )}
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-sm text-dark-400 truncate">{user?.email}</span>
+              <button
+                onClick={handleLogout}
+                className="p-1 text-dark-400 hover:text-white"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-3 py-1">
+              <span className="text-[10px] text-dark-600">v2024-12-21 19:58</span>
+            </div>
+          </>
         )}
-        <div className="flex items-center justify-between px-3 py-2">
-          <span className="text-sm text-dark-400 truncate">{user?.email}</span>
-          <button
-            onClick={handleLogout}
-            className="p-1 text-dark-400 hover:text-white"
-            title="Logout"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="px-3 py-1">
-          <span className="text-[10px] text-dark-600">v2024-12-21 19:58</span>
-        </div>
       </div>
     </div>
   )

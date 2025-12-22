@@ -18,9 +18,10 @@ interface NotesSidebarProps {
   isExpanded: boolean
   onToggleExpand: () => void
   onClose: () => void
+  refreshTrigger?: number
 }
 
-export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggleExpand, onClose }: NotesSidebarProps) {
+export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggleExpand, onClose, refreshTrigger }: NotesSidebarProps) {
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -31,7 +32,7 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
     if (isOpen) {
       loadNotes()
     }
-  }, [workspaceId, isOpen])
+  }, [workspaceId, isOpen, refreshTrigger])
 
   const loadNotes = async () => {
     try {

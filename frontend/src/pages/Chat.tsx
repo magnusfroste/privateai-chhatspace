@@ -25,6 +25,7 @@ export default function Chat() {
   const [showDocuments, setShowDocuments] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
   const [notesExpanded, setNotesExpanded] = useState(false)
+  const [notesRefreshTrigger, setNotesRefreshTrigger] = useState(0)
   const [useRag, setUseRag] = useState(true)
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -78,6 +79,7 @@ export default function Chat() {
         content: content
       })
       setShowNotes(true)
+      setNotesRefreshTrigger(prev => prev + 1)
     } catch (err) {
       console.error('Failed to create note:', err)
       alert('Failed to save note')
@@ -430,6 +432,7 @@ export default function Chat() {
           isExpanded={notesExpanded}
           onToggleExpand={() => setNotesExpanded(!notesExpanded)}
           onClose={() => setShowNotes(false)}
+          refreshTrigger={notesRefreshTrigger}
         />
       )}
     </div>
