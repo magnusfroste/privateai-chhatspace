@@ -57,6 +57,9 @@ When given context or documents, use them to inform your answers."""
     # Search Agent (n8n webhook for web search)
     SEARCH_AGENT_URL: str = ""  # e.g. https://agent.froste.eu/webhook/xxx/chat
     
+    # OCR Service (Marker API for PDF to Markdown)
+    OCR_SERVICE_URL: str = ""  # e.g. http://marker-api:8001
+    
     # Default RAG Settings (used when creating new workspaces)
     DEFAULT_TOP_N: int = 5  # Number of document chunks to retrieve
     DEFAULT_SIMILARITY_THRESHOLD: float = 0.25  # Minimum similarity score

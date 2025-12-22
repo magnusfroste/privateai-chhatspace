@@ -68,6 +68,7 @@ Default credentials:
 |----------|---------|-------------|
 | `QDRANT_URL` | `http://172.17.0.1:6333` | Qdrant vector database |
 | `SEARCH_AGENT_URL` | (empty) | n8n webhook URL for web search |
+| `OCR_SERVICE_URL` | (empty) | Marker API URL for PDF OCR (e.g., `http://marker-api:8001`) |
 
 ### Default RAG Settings (for new workspaces)
 | Variable | Default | Description |

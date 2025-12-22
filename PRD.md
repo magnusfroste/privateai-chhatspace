@@ -129,6 +129,7 @@ All settings can be configured via environment variables in Easypanel or `.env` 
 #### Vector Database & Search
 - `QDRANT_URL`: Vector database endpoint
 - `SEARCH_AGENT_URL`: n8n webhook URL for web search (optional)
+- `OCR_SERVICE_URL`: Marker API URL for PDF OCR (optional, enables scanned PDF support)
 
 #### Default RAG Settings (applied to new workspaces)
 - `DEFAULT_TOP_N`: Number of context chunks (default: 5)

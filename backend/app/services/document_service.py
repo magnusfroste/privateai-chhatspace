@@ -1,4 +1,5 @@
 import os
+import httpx
 import aiofiles
 from typing import Optional, List
 from pathlib import Path
@@ -9,6 +10,7 @@ class DocumentService:
     def __init__(self):
         self.originals_dir = Path(settings.ORIGINALS_DIR)
         self.markdown_dir = Path(settings.MARKDOWN_DIR)
+        self.ocr_service_url = settings.OCR_SERVICE_URL.rstrip('/') if settings.OCR_SERVICE_URL else None
         self._ensure_dirs()
     
     def _ensure_dirs(self):
@@ -69,7 +71,45 @@ class DocumentService:
         return str(md_path)
     
     async def _convert_pdf(self, path: Path) -> str:
-        """Convert PDF to markdown"""
+        """Convert PDF to markdown using Marker API (OCR) or fallback to PyPDF2"""
+        # Try Marker API first if configured
+        if self.ocr_service_url:
+            try:
+                result = await self._convert_pdf_with_marker(path)
+                if result and not result.startswith("Error"):
+                    return result
+            except Exception as e:
+                print(f"Marker API failed, falling back to PyPDF2: {e}")
+        
+        # Fallback to PyPDF2 (no OCR, text-based PDFs only)
+        return await self._convert_pdf_with_pypdf2(path)
+    
+    async def _convert_pdf_with_marker(self, path: Path) -> str:
+        """Convert PDF to markdown using Marker API (supports OCR)"""
+        try:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                # Read PDF file
+                async with aiofiles.open(path, "rb") as f:
+                    pdf_content = await f.read()
+                
+                # Send to Marker API
+                files = {"file": (path.name, pdf_content, "application/pdf")}
+                response = await client.post(
+                    f"{self.ocr_service_url}/convert",
+                    files=files
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                # Marker API returns markdown in various formats
+                if isinstance(data, dict):
+                    return data.get("markdown", data.get("text", data.get("content", str(data))))
+                return str(data)
+        except Exception as e:
+            return f"Error converting PDF with Marker: {e}"
+    
+    async def _convert_pdf_with_pypdf2(self, path: Path) -> str:
+        """Convert PDF to text using PyPDF2 (no OCR, text-based PDFs only)"""
         try:
             from PyPDF2 import PdfReader
             reader = PdfReader(str(path))
