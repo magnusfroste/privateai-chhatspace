@@ -9,7 +9,10 @@ import {
   Sparkles,
   Loader2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download,
+  MessageSquare,
+  FileText
 } from 'lucide-react'
 
 interface NotesSidebarProps {
@@ -118,6 +121,43 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
   const cancelEdit = () => {
     setEditingId(null)
     setEditContent('')
+  }
+
+  const handleDownload = (note: Note) => {
+    const blob = new Blob([note.content], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleAttachToChat = async (note: Note) => {
+    if (window.confirm(`Attach "${note.title}" to current chat?`)) {
+      // Create a message with note content and send to chat
+      const noteMessage = `[Note: ${note.title}]\n\n${note.content}`
+      // Copy to clipboard for now - user can paste into chat
+      navigator.clipboard.writeText(noteMessage)
+      alert('Note content copied to clipboard! Paste it into the chat.')
+    }
+  }
+
+  const handleAttachToRAG = async (note: Note) => {
+    try {
+      // Create a markdown file blob and upload as document
+      const blob = new Blob([note.content], { type: 'text/markdown' })
+      const file = new File([blob], `${note.title}.md`, { type: 'text/markdown' })
+      
+      // Upload to documents
+      await api.documents.upload(workspaceId, file)
+      alert(`"${note.title}" added to workspace documents!`)
+    } catch (err) {
+      console.error('Failed to attach to RAG:', err)
+      alert('Failed to add note to documents')
+    }
   }
 
   if (!isOpen) return null
@@ -232,16 +272,48 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
                   <>
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-medium text-white text-sm flex-1">{note.title}</h3>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDelete(note.id)
-                        }}
-                        className="p-1 text-dark-400 hover:text-red-400 hover:bg-dark-800 rounded"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDownload(note)
+                          }}
+                          className="p-1 text-dark-400 hover:text-blue-400 hover:bg-dark-800 rounded"
+                          title="Download as .md"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleAttachToChat(note)
+                          }}
+                          className="p-1 text-dark-400 hover:text-green-400 hover:bg-dark-800 rounded"
+                          title="Attach to Chat"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleAttachToRAG(note)
+                          }}
+                          className="p-1 text-dark-400 hover:text-purple-400 hover:bg-dark-800 rounded"
+                          title="Add to RAG Documents"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(note.id)
+                          }}
+                          className="p-1 text-dark-400 hover:text-red-400 hover:bg-dark-800 rounded"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     <p className="text-sm text-dark-300 whitespace-pre-wrap line-clamp-3">{note.content}</p>
                     <p className="text-xs text-dark-500 mt-2">
