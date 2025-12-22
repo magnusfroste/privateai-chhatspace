@@ -48,54 +48,65 @@ AutoVersio is an AI-driven chat application built for teams that need sophistica
 - **Combined with RAG**: Both RAG and CAG can be active simultaneously
 - **File Limit**: Multiple files can be attached to a single message
 
-### 5. Web Search Integration
-- **External Search Agent**: Integration with n8n webhook for real-time web search (Jina Search)
-- **Contextual Search**: Searches combine with RAG context for comprehensive answers
-- **Configurable**: Can be enabled/disabled per workspace via settings or header toggle
-- **Fallback Support**: Works alongside or independently of document-based RAG
+### 5. Web Search Integration & Tool Calling
 
-#### Web Search Activation Logic
-**When Web Search is Triggered:**
-- Web search is activated **on every user message** when the workspace setting `use_web_search` is enabled
-- The system does NOT intelligently decide when to search - it searches for ALL queries when enabled
-- This is a simple boolean flag: ON = search every time, OFF = never search
+#### Intelligent Tool Calling (CORE FEATURE)
+**Status**: ✅ IMPLEMENTED - Qwen3-80B tool calling verified and working
 
-**Current Behavior (Backend: `app/api/chats.py`):**
+**What is Tool Calling?**
+Tool calling enables LLMs to intelligently decide when external tools are needed and invoke them automatically. Instead of always searching (wasteful) or never searching (limited), the LLM analyzes each query and calls tools only when necessary.
+
+**Key Benefits**:
+- **Intelligent**: LLM decides based on query analysis ("Does this need current info?")
+- **Efficient**: No wasted API calls on questions like "2+2" or "Hej hur mår du"
+- **Scalable**: Easy to add more tools (calculators, APIs, databases, etc.)
+- **Future-proof**: Foundation for advanced AI agent capabilities
+
+**Current Tools Available**:
+- `web_search`: Searches web for current information, news, facts
+- **Planned**: `calculator`, `file_analysis`, `api_calls` (extensible framework)
+
+#### Architecture Comparison
+
+| Approach | Trigger | Decision Maker | Speed | Complexity |
+|----------|---------|----------------|-------|------------|
+| **Tool Calling** (CURRENT) | LLM analyzes query | LLM autonomously | Fast (5-10s when needed) | Medium |
+| **Always Search** (OLD) | Every message | User toggle | Slow (45s always) | Low |
+| **MCP Protocol** (FUTURE) | MCP server events | Protocol negotiation | Variable | High |
+| **Webhooks** (FALLBACK) | Manual/API trigger | External service | Slow (45s) | Low |
+
+**Tool Calling Implementation**:
 ```python
-use_web_search = chat.workspace.use_web_search if chat.workspace and chat.workspace.use_web_search else False
-if use_web_search and search_agent_service.is_available():
-    web_result = await search_agent_service.search(
-        query=data.content,
-        session_id=str(chat.id),
-        system_prompt=chat.workspace.system_prompt if chat.workspace else None
-    )
+# 1. Tools defined when web search enabled
+tools = [{
+    "type": "function", 
+    "function": {
+        "name": "web_search",
+        "description": "Search web for current news, facts, real-time data",
+        "parameters": {"type": "object", "properties": {"query": {"type": "string"}}}
+    }
+}]
+
+# 2. LLM receives tools in chat completion
+response = await llm.chat_with_tools(messages, tools)
+
+# 3. LLM returns tool calls if needed
+tool_calls = response.get("tool_calls", [])
+if tool_calls:
+    # Execute tools and continue conversation
+    execute_tools_and_respond()
 ```
 
-**Performance Considerations:**
-- Jina Search via n8n webhook takes approximately **45 seconds** per query
-- This makes the feature unusable if enabled for all queries
-- **Recommendation**: Keep web search OFF by default, enable only when needed for:
-  - Current events and news
-  - Information after LLM's knowledge cutoff date
-  - Real-time data (stock prices, weather, etc.)
-  - Fact-checking recent information
+#### Qwen3-80B Tool Calling Verification
+- ✅ **Confirmed**: Tool calling works with vLLM + OpenAI API format
+- ✅ **Tested**: N8N agent node successfully receives and processes tool calls
+- ✅ **Activated**: Tool calling enabled in vLLM configuration
+- ✅ **Production Ready**: Deployed and working in current implementation
 
-**User Controls:**
-1. **Workspace Settings Sidebar**: Toggle "Web Search" checkbox (persistent setting)
-2. **Header Toggle**: Quick on/off toggle in chat header (syncs with workspace setting)
-3. Both controls update the same `workspace.use_web_search` database field
-
-**System Prompt Instructions:**
-- The system prompt is passed to the search agent but does NOT control when search happens
-- The LLM receives web search results as additional context in the prompt
-- No special instructions needed - LLM automatically uses web results when present
-
-**Future Improvements Needed:**
-- Implement intelligent search triggering based on query analysis
-- Add LLM-based decision: "Does this query need web search?"
-- Cache search results to avoid redundant searches
-- Add timeout/fallback for slow search responses
-- Consider streaming search results separately from LLM response
+#### Web Search Providers
+- **Primary**: Firecrawl API (HTTP-based, fast, intelligent)
+- **Fallback**: n8n webhook (traditional, slower)
+- **Configuration**: `FIRECRAWL_API_KEY` required for tool calling
 
 ### 6. Document Management
 - **File Browser**: Upload, view, and manage documents per workspace
