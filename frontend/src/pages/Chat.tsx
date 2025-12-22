@@ -4,7 +4,7 @@ import { useWorkspaceStore } from '../store/workspace'
 import { api } from '../lib/api'
 import Sidebar from '../components/Sidebar'
 import ChatMessage from '../components/ChatMessage'
-import ChatInput from '../components/ChatInput'
+import ChatInput, { ChatInputHandle } from '../components/ChatInput'
 import WorkspaceSettings from '../components/WorkspaceSettings'
 import DocumentManager from '../components/DocumentManager'
 import NotesSidebar from '../components/NotesSidebar'
@@ -29,6 +29,7 @@ export default function Chat() {
   const [useRag, setUseRag] = useState(true)
   const [hasEmbeddedDocs, setHasEmbeddedDocs] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatInputRef = useRef<ChatInputHandle>(null)
 
   useEffect(() => {
     if (currentChat) {
@@ -84,6 +85,10 @@ export default function Chat() {
       console.error('Failed to create note:', err)
       alert('Failed to save note')
     }
+  }
+
+  const handleAttachNoteToChat = (content: string) => {
+    chatInputRef.current?.setMessage(content)
   }
 
   const handleSend = async (content: string, files?: File[]) => {
@@ -313,18 +318,18 @@ export default function Chat() {
                   <FileText className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => setShowNotes(true)}
-                  className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
-                  title="Notes"
-                >
-                  <StickyNote className="w-5 h-5" />
-                </button>
-                <button
                   onClick={() => setShowSettings(true)}
                   className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
                   title="Settings"
                 >
                   <Settings className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setShowNotes(true)}
+                  className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
+                  title="Notes"
+                >
+                  <StickyNote className="w-5 h-5" />
                 </button>
               </div>
             </header>
@@ -366,7 +371,7 @@ export default function Chat() {
             </div>
 
             {currentChat && (
-              <ChatInput onSend={handleSend} disabled={isStreaming} />
+              <ChatInput ref={chatInputRef} onSend={handleSend} disabled={isStreaming} />
             )}
           </>
         ) : (
@@ -433,6 +438,7 @@ export default function Chat() {
           onToggleExpand={() => setNotesExpanded(!notesExpanded)}
           onClose={() => setShowNotes(false)}
           refreshTrigger={notesRefreshTrigger}
+          onAttachToChat={handleAttachNoteToChat}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Send, Paperclip, X } from 'lucide-react'
 
 export interface ChatInputProps {
@@ -7,11 +7,22 @@ export interface ChatInputProps {
   placeholder?: string
 }
 
-export default function ChatInput({ onSend, disabled, placeholder = 'Send a message...' }: ChatInputProps) {
+export interface ChatInputHandle {
+  setMessage: (text: string) => void
+}
+
+const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(({ onSend, disabled, placeholder = 'Send a message...' }, ref) => {
   const [message, setMessage] = useState('')
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    setMessage: (text: string) => {
+      setMessage(text)
+      setTimeout(() => textareaRef.current?.focus(), 0)
+    }
+  }))
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -120,4 +131,8 @@ export default function ChatInput({ onSend, disabled, placeholder = 'Send a mess
       </div>
     </div>
   )
-}
+})
+
+ChatInput.displayName = 'ChatInput'
+
+export default ChatInput

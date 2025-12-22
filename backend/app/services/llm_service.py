@@ -112,6 +112,26 @@ class LLMService:
         
         return "\n\n".join(prompts)
     
+    async def generate(self, prompt: str, temperature: float = 0.7, max_tokens: int = 2048) -> str:
+        """Simple text generation for transformations"""
+        messages = [{"role": "user", "content": prompt}]
+        
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                f"{self.base_url}/chat/completions",
+                headers=self._get_headers(),
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "stream": False,
+                }
+            )
+            response.raise_for_status()
+            result = response.json()
+            return result["choices"][0]["message"]["content"]
+    
     async def chat_completion(
         self,
         messages: List[Dict[str, str]],

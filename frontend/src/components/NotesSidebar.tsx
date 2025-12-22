@@ -22,9 +22,10 @@ interface NotesSidebarProps {
   onToggleExpand: () => void
   onClose: () => void
   refreshTrigger?: number
+  onAttachToChat?: (content: string) => void
 }
 
-export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggleExpand, onClose, refreshTrigger }: NotesSidebarProps) {
+export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggleExpand, onClose, refreshTrigger, onAttachToChat }: NotesSidebarProps) {
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -136,12 +137,9 @@ export default function NotesSidebar({ workspaceId, isOpen, isExpanded, onToggle
   }
 
   const handleAttachToChat = async (note: Note) => {
-    if (window.confirm(`Attach "${note.title}" to current chat?`)) {
-      // Create a message with note content and send to chat
+    if (onAttachToChat) {
       const noteMessage = `[Note: ${note.title}]\n\n${note.content}`
-      // Copy to clipboard for now - user can paste into chat
-      navigator.clipboard.writeText(noteMessage)
-      alert('Note content copied to clipboard! Paste it into the chat.')
+      onAttachToChat(noteMessage)
     }
   }
 
