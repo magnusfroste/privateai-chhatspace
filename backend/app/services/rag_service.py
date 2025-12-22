@@ -42,13 +42,17 @@ class RAGService:
                 word_counts[word] = word_counts.get(word, 0) + 1
         
         # Convert to sparse vector (indices = word hashes, values = counts)
-        indices = []
-        values = []
+        # Use dict to handle hash collisions by summing values
+        index_map = {}
         for word, count in word_counts.items():
             # Use hash as index (mod large number to keep indices reasonable)
             idx = hash(word) % 1000000
-            indices.append(idx)
-            values.append(float(count))
+            # If collision, sum the counts
+            index_map[idx] = index_map.get(idx, 0.0) + float(count)
+        
+        # Convert to sorted lists (Qdrant requires sorted indices)
+        indices = sorted(index_map.keys())
+        values = [index_map[idx] for idx in indices]
         
         return SparseVector(indices=indices, values=values)
     
