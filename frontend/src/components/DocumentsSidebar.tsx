@@ -30,6 +30,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
   const [docContent, setDocContent] = useState<string>('')
   const [loadingContent, setLoadingContent] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [embeddingStatus, setEmbeddingStatus] = useState<{[key: number]: 'idle' | 'embedding' | 'success' | 'error'}>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -88,9 +89,17 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
     document.body.removeChild(link)
   }
 
-  const closeViewer = () => {
-    setViewingDoc(null)
-    setDocContent('')
+  const handleRetryEmbed = async (doc: Document) => {
+    setEmbeddingStatus(prev => ({ ...prev, [doc.id]: 'embedding' }))
+    try {
+      const updated = await api.documents.embed(doc.id)
+      setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d))
+      setEmbeddingStatus(prev => ({ ...prev, [updated.id]: 'success' }))
+    } catch (err) {
+      console.error('Failed to embed document:', err)
+      setEmbeddingStatus(prev => ({ ...prev, [doc.id]: 'error' }))
+      alert(`Failed to embed ${doc.original_filename}. Please try again.`)
+    }
   }
 
   const handleUpload = async (files: FileList | null) => {
@@ -108,10 +117,15 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
           setDocuments(prev => [uploadedDoc, ...prev])
           
           // Automatically embed to RAG in background
+          setEmbeddingStatus(prev => ({ ...prev, [uploadedDoc.id]: 'embedding' }))
           api.documents.embed(uploadedDoc.id).then(updated => {
             setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d))
+            setEmbeddingStatus(prev => ({ ...prev, [updated.id]: 'success' }))
           }).catch(err => {
             console.error('Failed to embed document:', err)
+            setEmbeddingStatus(prev => ({ ...prev, [uploadedDoc.id]: 'error' }))
+            // Show error notification to user
+            alert(`Failed to embed ${uploadedDoc.original_filename}. You can try again by clicking the retry button.`)
           })
         } catch (err) {
           console.error(`Failed to upload ${file.name}:`, err)
@@ -262,6 +276,13 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
                     <div className="flex items-center gap-2 text-xs">
                       {doc.is_embedded ? (
                         <span className="text-green-400">✓ Embedded</span>
+                      ) : embeddingStatus[doc.id] === 'embedding' ? (
+                        <span className="text-yellow-400 flex items-center gap-1">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Embedding...
+                        </span>
+                      ) : embeddingStatus[doc.id] === 'error' ? (
+                        <span className="text-red-400">✗ Failed to embed</span>
                       ) : (
                         <span className="text-dark-500">Not embedded</span>
                       )}
@@ -269,6 +290,15 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
                       <span className="text-dark-500">
                         {new Date(doc.created_at).toLocaleDateString()}
                       </span>
+                      {!doc.is_embedded && embeddingStatus[doc.id] !== 'embedding' && (
+                        <button
+                          onClick={() => handleRetryEmbed(doc)}
+                          className="text-blue-400 hover:text-blue-300 text-xs ml-2"
+                          title="Retry embedding"
+                        >
+                          ↻ Retry
+                        </button>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -281,7 +311,12 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
                       handleView(doc)
                     }}
                   >
-                    <FileText className={`w-4 h-4 flex-shrink-0 ${doc.is_embedded ? 'text-green-400' : 'text-dark-400'}`} />
+                    <FileText className={`w-4 h-4 flex-shrink-0 ${
+                      doc.is_embedded ? 'text-green-400' : 
+                      embeddingStatus[doc.id] === 'embedding' ? 'text-yellow-400 animate-pulse' :
+                      embeddingStatus[doc.id] === 'error' ? 'text-red-400' :
+                      'text-dark-400'
+                    }`} />
                     <p className="text-xs text-white truncate">{doc.original_filename}</p>
                   </div>
                 )}
