@@ -16,6 +16,7 @@ class Workspace(Base):
     similarity_threshold = Column(Float, default=0.25)  # Minimum similarity score
     use_hybrid_search = Column(Boolean, default=True)  # Use hybrid (dense + sparse) search
     use_web_search = Column(Boolean, default=False)  # Use external search agent for web search
+    sound_enabled = Column(Boolean, default=True)  # Enable sound for TTS
     admin_pinned = Column(Boolean, default=False)  # Show in admin's sidebar
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

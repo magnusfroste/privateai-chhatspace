@@ -8,7 +8,7 @@ BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "AutoVersio"
+    APP_NAME: str = "AI Chat App"
     DEBUG: bool = False
     
     # Auth
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # Admin (set via env in Easypanel)
-    ADMIN_EMAIL: str = "admin@autoversio.local"
+    ADMIN_EMAIL: str = "admin@localhost"
     ADMIN_PASSWORD: str = "changeme"
     
     # Default System Prompt for new workspaces (can be customized per workspace)
@@ -39,7 +39,7 @@ When given context or documents, use them to inform your answers."""
     CONTEXT_USER_RATIO: float = 0.15    # 15% for user input + files
     
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:////data/autoversio.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:////data/app.db"
     
     # LLM (OpenAI-compatible API)
     LLM_BASE_URL: str = "http://172.17.0.1:8000/v1"

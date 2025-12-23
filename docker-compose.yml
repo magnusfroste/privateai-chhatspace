@@ -1,5 +1,5 @@
 services:
-  autoversio:
+  app:
     build: .
     ports:
       - "8000:8000"
@@ -8,7 +8,7 @@ services:
     environment:
       - OCR_SERVICE_URL=http://marker-api:8001
     volumes:
-      - autoversio_data:/data
+      - app_data:/data
     depends_on:
       - marker-api
     restart: unless-stopped

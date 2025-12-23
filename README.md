@@ -1,4 +1,4 @@
-# Autoversio
+# Private AI Chatspace
 
 A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generation) support. Successfully deployed on Easypanel with remote LLM and embedding services integration. Inspired by AnythingLLM and OpenWebUI, but simpler and focused on quality functionality.
 
@@ -24,7 +24,7 @@ docker-compose up --build
 Access at `http://localhost:8000`
 
 Default credentials:
-- Email: `admin@autoversio.local`
+- Email: `admin@localhost`
 - Password: `changeme`
 
 ### Easypanel Deployment
@@ -44,7 +44,7 @@ Default credentials:
 ### Core Settings
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ADMIN_EMAIL` | `admin@autoversio.local` | Admin user email |
+| `ADMIN_EMAIL` | `admin@localhost` | Admin user email |
 | `ADMIN_PASSWORD` | `changeme` | Admin user password |
 | `SECRET_KEY` | (random) | JWT secret key |
 | `DEBUG` | `false` | Enable debug mode |
