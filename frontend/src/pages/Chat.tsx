@@ -21,7 +21,7 @@ interface Message {
 }
 
 export default function Chat() {
-  const { currentWorkspace, currentChat, addChat, setCurrentChat } = useWorkspaceStore()
+  const { currentWorkspace, currentChat, addChat, setCurrentChat, setCurrentWorkspace } = useWorkspaceStore()
   const token = useAuthStore((state) => state.token)
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
@@ -111,9 +111,11 @@ export default function Chat() {
     setUseWebSearch(newValue)
     
     try {
-      await api.workspaces.update(currentWorkspace.id, {
+      const updated = await api.workspaces.update(currentWorkspace.id, {
         use_web_search: newValue
       })
+      // Update workspace store so other components see the change
+      setCurrentWorkspace(updated)
     } catch (err) {
       console.error('Failed to update web search setting:', err)
       setUseWebSearch(!newValue)
@@ -243,16 +245,14 @@ export default function Chat() {
       addChat(chat)
       setCurrentChat(chat)
       
-      // Small delay to ensure state is updated
-      setTimeout(() => {
-        handleSendToChat(chat.id, content, files)
-      }, 100)
+      // Call directly with chat.id - no need for setTimeout
+      await handleSendToChat(chat.id, content, files)
     } catch (err) {
       console.error('Failed to create chat:', err)
     }
   }
 
-  const handleSendToChat = async (chatId: number, content: string, _files?: File[]) => {
+  const handleSendToChat = async (chatId: number, content: string, files?: File[]) => {
     const userMessage: Message = {
       id: Date.now(),
       role: 'user',
@@ -269,26 +269,51 @@ export default function Chat() {
     setMessages((prev) => [...prev, assistantMessage])
 
     try {
-      const response = await fetch(`/api/chats/${chatId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content, use_rag: useRag }),
-      })
+      let response: Response
+      
+      if (files && files.length > 0) {
+        // Use FormData when files are attached
+        const formData = new FormData()
+        formData.append('content', content)
+        formData.append('use_rag', useRag.toString())
+        files.forEach((file) => {
+          formData.append('files', file)
+        })
+        
+        response = await fetch(`/api/chats/${chatId}/messages/upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        })
+      } else {
+        // Use JSON for regular messages
+        response = await fetch(`/api/chats/${chatId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content, use_rag: useRag }),
+        })
+      }
 
       if (!response.body) return
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        
+        // Keep the last incomplete line in buffer
+        buffer = lines.pop() || ''
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
