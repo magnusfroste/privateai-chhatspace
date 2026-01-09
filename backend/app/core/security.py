@@ -81,3 +81,30 @@ async def get_current_admin(current_user = Depends(get_current_user)):
             detail="Admin access required",
         )
     return current_user
+
+
+# Optional security - doesn't require auth but uses it if provided
+optional_security = HTTPBearer(auto_error=False)
+
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
+    db: AsyncSession = Depends(get_db)
+) -> Optional["User"]:
+    """Get current user if authenticated, otherwise return None"""
+    from app.models.user import User
+    
+    if credentials is None:
+        return None
+    
+    token = credentials.credentials
+    payload = decode_token(token)
+    
+    if payload is None:
+        return None
+    
+    user_id = payload.get("sub")
+    if user_id is None:
+        return None
+    
+    result = await db.execute(select(User).where(User.id == int(user_id)))
+    return result.scalar_one_or_none()
