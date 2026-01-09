@@ -279,7 +279,14 @@ class RAGService:
         collection_name = self._collection_name(workspace_id)
         
         try:
-            self.client.delete(
+            # First check if collection exists
+            collections = self.client.get_collections().collections
+            if not any(c.name == collection_name for c in collections):
+                print(f"Collection {collection_name} does not exist, skipping delete")
+                return
+            
+            # Delete points with matching document_id
+            result = self.client.delete(
                 collection_name=collection_name,
                 points_selector={
                     "filter": {
@@ -289,8 +296,9 @@ class RAGService:
                     }
                 }
             )
-        except Exception:
-            pass
+            print(f"Deleted document {document_id} from {collection_name}: {result}")
+        except Exception as e:
+            print(f"Error deleting document {document_id} from Qdrant: {e}")
     
     async def delete_collection(self, workspace_id: int):
         """Delete entire workspace collection"""
