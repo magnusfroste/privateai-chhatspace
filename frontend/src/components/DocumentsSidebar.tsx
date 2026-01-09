@@ -82,7 +82,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
   const handleDownload = (doc: Document) => {
     // Create download link for original file
     const link = document.createElement('a')
-    link.href = `/api/documents/${doc.id}/download`
+    link.href = `${window.location.origin}/api/documents/${doc.id}/download`
     link.download = doc.original_filename
     document.body.appendChild(link)
     link.click()
@@ -235,7 +235,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             <h3 className="text-sm font-medium text-white truncate flex-1">{viewingDoc.original_filename}</h3>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => window.open(`http://localhost:8000/api/documents/${viewingDoc.id}/download`, '_blank')}
+                onClick={() => window.open(`${window.location.origin}/api/documents/${viewingDoc.id}/download`, '_blank')}
                 className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded"
                 title="View original PDF"
               >
