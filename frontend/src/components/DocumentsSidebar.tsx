@@ -97,22 +97,13 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
   const handleRetryEmbed = async (doc: Document) => {
     setEmbeddingStatus(prev => ({ ...prev, [doc.id]: 'embedding' }))
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
-      
-      const embedPromise = api.documents.embed(doc.id, { signal: controller.signal }) as Promise<Document>
-      
-      const updated = await embedPromise
-      clearTimeout(timeoutId)
+      const updated = await api.documents.embed(doc.id)
       setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d))
       setEmbeddingStatus(prev => ({ ...prev, [updated.id]: 'success' }))
     } catch (err: any) {
       console.error('Failed to embed document:', err)
       setEmbeddingStatus(prev => ({ ...prev, [doc.id]: 'error' }))
-      const errorMsg = err.name === 'AbortError' 
-        ? `Embedding timed out for ${doc.original_filename}. The document might be too large.`
-        : `Failed to embed ${doc.original_filename}. Please try again.`
-      alert(errorMsg)
+      alert(`Failed to embed ${doc.original_filename}. Please try again.`)
     }
   }
 
