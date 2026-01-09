@@ -61,3 +61,12 @@ async def run_migrations():
             print("Adding admin_pinned column to workspaces table...")
             await conn.execute(text("ALTER TABLE workspaces ADD COLUMN admin_pinned BOOLEAN DEFAULT 0"))
             print("Migration complete: admin_pinned column added")
+        
+        # Check if sound_enabled column exists in workspaces table
+        try:
+            result = await conn.execute(text("SELECT sound_enabled FROM workspaces LIMIT 1"))
+        except Exception:
+            # Column doesn't exist, add it
+            print("Adding sound_enabled column to workspaces table...")
+            await conn.execute(text("ALTER TABLE workspaces ADD COLUMN sound_enabled BOOLEAN DEFAULT 1"))
+            print("Migration complete: sound_enabled column added")
