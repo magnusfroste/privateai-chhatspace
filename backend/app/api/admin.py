@@ -383,37 +383,114 @@ async def test_embedder_connection(
         return {"status": "error", "url": settings.EMBEDDER_BASE_URL, "error": str(e)}
 
 
-@router.get("/test/marker")
-async def test_marker_connection(
+@router.get("/test/pdf-provider")
+async def test_pdf_provider(
     admin: User = Depends(get_current_admin)
 ):
-    """Test Marker API connection for OCR"""
-    if not settings.OCR_SERVICE_URL:
-        return {
-            "status": "not_configured",
-            "message": "OCR_SERVICE_URL not set. Using PyPDF2 fallback."
-        }
+    """Test PDF to Markdown provider configuration"""
+    provider = settings.PDF_PROVIDER.lower()
     
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(f"{settings.OCR_SERVICE_URL}/health")
-            if response.status_code == 200:
-                return {
-                    "status": "connected",
-                    "url": settings.OCR_SERVICE_URL,
-                    "message": "Marker API is available for PDF OCR"
-                }
-            else:
-                return {
-                    "status": "error",
-                    "url": settings.OCR_SERVICE_URL,
-                    "error": f"HTTP {response.status_code}"
-                }
-    except Exception as e:
+    if provider == "docling-api":
+        if not settings.DOCLING_SERVICE_URL:
+            return {
+                "status": "not_configured",
+                "provider": "docling-api",
+                "message": "DOCLING_SERVICE_URL not set. Configure it to use docling-serve API."
+            }
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"{settings.DOCLING_SERVICE_URL}/health")
+                if response.status_code == 200:
+                    return {
+                        "status": "connected",
+                        "provider": "docling-api",
+                        "url": settings.DOCLING_SERVICE_URL,
+                        "message": "Docling-serve API is available (GPU-accelerated)"
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "provider": "docling-api",
+                        "url": settings.DOCLING_SERVICE_URL,
+                        "error": f"HTTP {response.status_code}"
+                    }
+        except Exception as e:
+            return {
+                "status": "error",
+                "provider": "docling-api",
+                "url": settings.DOCLING_SERVICE_URL,
+                "error": str(e)
+            }
+    
+    elif provider == "docling":
+        try:
+            from docling.document_converter import DocumentConverter
+            return {
+                "status": "available",
+                "provider": "docling",
+                "message": "Docling is installed and ready for advanced PDF processing"
+            }
+        except ImportError:
+            return {
+                "status": "error",
+                "provider": "docling",
+                "error": "Docling not installed. Run: pip install docling"
+            }
+    
+    elif provider == "marker-api":
+        if not settings.OCR_SERVICE_URL:
+            return {
+                "status": "not_configured",
+                "provider": "marker-api",
+                "message": "OCR_SERVICE_URL not set. Configure it to use Marker API."
+            }
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"{settings.OCR_SERVICE_URL}/health")
+                if response.status_code == 200:
+                    return {
+                        "status": "connected",
+                        "provider": "marker-api",
+                        "url": settings.OCR_SERVICE_URL,
+                        "message": "Marker API is available for PDF OCR"
+                    }
+                else:
+                    return {
+                        "status": "error",
+                        "provider": "marker-api",
+                        "url": settings.OCR_SERVICE_URL,
+                        "error": f"HTTP {response.status_code}"
+                    }
+        except Exception as e:
+            return {
+                "status": "error",
+                "provider": "marker-api",
+                "url": settings.OCR_SERVICE_URL,
+                "error": str(e)
+            }
+    
+    elif provider == "pypdf2":
+        try:
+            from PyPDF2 import PdfReader
+            return {
+                "status": "available",
+                "provider": "pypdf2",
+                "message": "PyPDF2 is available (basic text extraction, no OCR)"
+            }
+        except ImportError:
+            return {
+                "status": "error",
+                "provider": "pypdf2",
+                "error": "PyPDF2 not installed"
+            }
+    
+    else:
         return {
             "status": "error",
-            "url": settings.OCR_SERVICE_URL,
-            "error": str(e)
+            "provider": provider,
+            "error": f"Unknown provider: {provider}. Use 'docling', 'marker-api', or 'pypdf2'"
         }
 
 

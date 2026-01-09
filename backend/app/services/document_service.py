@@ -1,6 +1,7 @@
 import os
 import httpx
 import aiofiles
+import asyncio
 from typing import Optional, List
 from pathlib import Path
 from app.core.config import settings
@@ -10,8 +11,11 @@ class DocumentService:
     def __init__(self):
         self.originals_dir = Path(settings.ORIGINALS_DIR)
         self.markdown_dir = Path(settings.MARKDOWN_DIR)
+        self.pdf_provider = settings.PDF_PROVIDER.lower()
+        self.docling_service_url = settings.DOCLING_SERVICE_URL.rstrip('/') if settings.DOCLING_SERVICE_URL else None
         self.ocr_service_url = settings.OCR_SERVICE_URL.rstrip('/') if settings.OCR_SERVICE_URL else None
         self._ensure_dirs()
+        self._docling_converter = None
     
     def _ensure_dirs(self):
         self.originals_dir.mkdir(parents=True, exist_ok=True)
@@ -71,9 +75,24 @@ class DocumentService:
         return str(md_path)
     
     async def _convert_pdf(self, path: Path) -> str:
-        """Convert PDF to markdown using Marker API (OCR) or fallback to PyPDF2"""
-        # Try Marker API first if configured
-        if self.ocr_service_url:
+        """Convert PDF to markdown using configured provider"""
+        if self.pdf_provider == "docling-api" and self.docling_service_url:
+            try:
+                result = await self._convert_pdf_with_docling_api(path)
+                if result and not result.startswith("Error"):
+                    return result
+            except Exception as e:
+                print(f"Docling API failed, falling back to PyPDF2: {e}")
+        
+        elif self.pdf_provider == "docling":
+            try:
+                result = await self._convert_pdf_with_docling(path)
+                if result and not result.startswith("Error"):
+                    return result
+            except Exception as e:
+                print(f"Docling failed, falling back to PyPDF2: {e}")
+        
+        elif self.pdf_provider == "marker-api" and self.ocr_service_url:
             try:
                 result = await self._convert_pdf_with_marker(path)
                 if result and not result.startswith("Error"):
@@ -81,18 +100,67 @@ class DocumentService:
             except Exception as e:
                 print(f"Marker API failed, falling back to PyPDF2: {e}")
         
-        # Fallback to PyPDF2 (no OCR, text-based PDFs only)
         return await self._convert_pdf_with_pypdf2(path)
+    
+    async def _convert_pdf_with_docling_api(self, path: Path) -> str:
+        """Convert PDF to markdown using docling-serve API (GPU-accelerated microservice)"""
+        try:
+            async with httpx.AsyncClient(timeout=300.0) as client:
+                async with aiofiles.open(path, "rb") as f:
+                    pdf_content = await f.read()
+                
+                files = {"files": (path.name, pdf_content, "application/pdf")}
+                data = {
+                    "parameters": '{"options": {"from_formats": ["pdf"], "to_formats": ["md"]}}'
+                }
+                
+                response = await client.post(
+                    f"{self.docling_service_url}/v1alpha/convert/file",
+                    files=files,
+                    data=data
+                )
+                response.raise_for_status()
+                
+                result = response.json()
+                if result.get("status") == "success" and result.get("document"):
+                    markdown = result["document"].get("md_content", "")
+                    if markdown:
+                        return markdown
+                    return f"Error: No markdown content in response: {result}"
+                else:
+                    errors = result.get("errors", [])
+                    return f"Error converting PDF with Docling API: {errors}"
+        except Exception as e:
+            return f"Error converting PDF with Docling API: {e}"
+    
+    async def _convert_pdf_with_docling(self, path: Path) -> str:
+        """Convert PDF to markdown using Docling (local processing with advanced PDF understanding)"""
+        try:
+            from docling.document_converter import DocumentConverter
+            
+            if self._docling_converter is None:
+                self._docling_converter = DocumentConverter()
+            
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                None,
+                lambda: self._docling_converter.convert(str(path))
+            )
+            
+            markdown = result.document.export_to_markdown()
+            return markdown
+        except ImportError:
+            return "Error: Docling not installed. Install with: pip install docling"
+        except Exception as e:
+            return f"Error converting PDF with Docling: {e}"
     
     async def _convert_pdf_with_marker(self, path: Path) -> str:
         """Convert PDF to markdown using Marker API (supports OCR)"""
         try:
             async with httpx.AsyncClient(timeout=300.0) as client:
-                # Read PDF file
                 async with aiofiles.open(path, "rb") as f:
                     pdf_content = await f.read()
                 
-                # Send to Marker API
                 files = {"file": (path.name, pdf_content, "application/pdf")}
                 response = await client.post(
                     f"{self.ocr_service_url}/convert",
@@ -101,7 +169,6 @@ class DocumentService:
                 response.raise_for_status()
                 
                 data = response.json()
-                # Marker API returns markdown in various formats
                 if isinstance(data, dict):
                     return data.get("markdown", data.get("text", data.get("content", str(data))))
                 return str(data)

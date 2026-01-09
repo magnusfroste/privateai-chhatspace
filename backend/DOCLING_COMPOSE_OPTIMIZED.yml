@@ -1,0 +1,59 @@
+services:
+  docling-serve:
+    image: quay.io/docling-project/docling-serve-cu128:latest
+    container_name: docling-serve
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      # UI & Basic Settings
+      - DOCLING_SERVE_ENABLE_UI=true
+      - DOCLING_SERVE_MAX_SYNC_WAIT=1200
+      - DOCLING_SERVE_MAX_DOCUMENT_TIMEOUT=1200
+      
+      # GPU Settings
+      - DOCLING_SERVE_ACCELERATOR_DEVICE=cuda
+      - CUDA_DEVICE_ORDER=PCI_BUS_ID
+      - NCCL_P2P_DISABLE=0
+      - NCCL_IB_DISABLE=1
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      - PYTORCH_ALLOC_CONF=expandable_segments:True
+      
+      # ============================================
+      # OPTIMIZATIONS FOR RICHER MARKDOWN (RAG/CAG)
+      # ============================================
+      
+      # Workers - Increase for better throughput (you have 2x RTX 5090)
+      - DOCLING_SERVE_ENG_LOC_NUM_WORKERS=8  # Increased from 4
+      
+      # Performance Tuning
+      - DOCLING_PERF_PAGE_BATCH_SIZE=8  # Process more pages in parallel (default: 4)
+      - DOCLING_PERF_ELEMENTS_BATCH_SIZE=16  # More elements per batch (default: 8)
+      
+      # Batch Sizes for GPU Processing
+      - DOCLING_SERVE_OCR_BATCH_SIZE=8  # OCR batch size
+      - DOCLING_SERVE_LAYOUT_BATCH_SIZE=8  # Layout detection batch
+      - DOCLING_SERVE_TABLE_BATCH_SIZE=4  # Table structure batch
+      
+      # Thread Settings
+      - OMP_NUM_THREADS=16  # Increased from 8
+      - MKL_NUM_THREADS=16  # Increased from 8
+      - DOCLING_NUM_THREADS=8  # Torch CPU threads
+      
+      # Hugging Face Token (set this in your environment)
+      - HUGGINGFACE_TOKEN=${HUGGINGFACE_TOKEN}
+      
+      # Enable Remote Services (for VLM picture descriptions)
+      - DOCLING_SERVE_ENABLE_REMOTE_SERVICES=true
+      
+    volumes:
+      - /home/ss/.cache/huggingface:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 2  # Both RTX 5090 GPUs
+              capabilities: [gpu]
+    ipc: host
+    shm_size: '128gb'

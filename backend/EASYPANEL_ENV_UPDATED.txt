@@ -1,0 +1,68 @@
+# Admin Credentials
+ADMIN_EMAIL=admin@autoversio.local
+ADMIN_PASSWORD=changeme
+SECRET_KEY=change-this-to-a-secure-random-string
+
+# Default System Prompt for new workspaces
+DEFAULT_SYSTEM_PROMPT=You are a helpful AI assistant. Answer questions accurately and provide detailed, useful responses. When given context or documents, use them to inform your answers.
+
+# LLM Configuration
+LLM_BASE_URL=http://172.17.0.1:8000/v1
+LLM_API_KEY=sk-7eC6fR7qpxQOXCK2kYfPWg
+LLM_MODEL=autoversio
+
+# Context Window Management (configured for Qwen3-80B)
+MAX_CONTEXT_TOKENS=128000
+CONTEXT_HISTORY_RATIO=0.7
+CONTEXT_SYSTEM_RATIO=0.15
+CONTEXT_USER_RATIO=0.15
+
+# Embedder Configuration
+EMBEDDER_BASE_URL=http://172.17.0.1:8001/v1
+EMBEDDER_API_KEY=sk-7eC6fR7qpxQOXCK2kYfPWg
+EMBEDDER_MODEL=embed
+
+# Default RAG Settings
+DEFAULT_TOP_N=5
+DEFAULT_SIMILARITY_THRESHOLD=0.25
+DEFAULT_USE_HYBRID_SEARCH=true
+DEFAULT_USE_WEB_SEARCH=false
+DEFAULT_CHAT_MODE=chat
+
+# Qdrant Vector Database
+QDRANT_URL=http://data_qdrant:6333
+
+# n8n webhook for web search
+SEARCH_AGENT_URL=http://app_n8n:5678/webhook/9fa01493-9f44-49d4-b6f1-3e09b7062969
+
+# MCP (Model Context Protocol) Settings
+MCP_ENABLED=true
+FIRECRAWL_API_KEY=fc-c196d639f8b2490aa1971ad57299269e
+
+# ============================================
+# PDF to Markdown Provider (NEW)
+# ============================================
+# Options: "docling-api", "marker-api", "docling", "pypdf2"
+# - docling-api: GPU-accelerated docling-serve (RECOMMENDED)
+# - marker-api: External marker API service
+# - docling: Local in-process (CPU-only, requires pip install docling)
+# - pypdf2: Basic text extraction (fallback)
+PDF_PROVIDER=docling-api
+
+# Docling Service (GPU-accelerated, 2x RTX 5090)
+DOCLING_SERVICE_URL=http://app_docling_docling-serve:5001
+
+# Marker API (Alternative/Backup)
+OCR_SERVICE_URL=http://app_marker-llm:8001
+
+# Database
+DATABASE_URL=sqlite+aiosqlite:////data/autoversio.db
+
+# Storage Paths
+DATA_DIR=/data
+DOCUMENTS_DIR=/data/documents
+ORIGINALS_DIR=/data/documents/originals
+MARKDOWN_DIR=/data/documents/markdown
+
+# Debug
+DEBUG=false

@@ -57,6 +57,17 @@ When given context or documents, use them to inform your answers."""
     # Search Agent (n8n webhook for web search)
     SEARCH_AGENT_URL: str = ""  # e.g. https://agent.froste.eu/webhook/xxx/chat
     
+    # PDF to Markdown Provider
+    # Options: "docling-api", "marker-api", "docling", "pypdf2"
+    # - docling-api: External docling-serve API (GPU-accelerated, requires DOCLING_SERVICE_URL)
+    # - marker-api: External marker API service (requires OCR_SERVICE_URL)
+    # - docling: Local in-process docling (CPU, no external service needed)
+    # - pypdf2: Basic text extraction (no OCR, fallback option)
+    PDF_PROVIDER: str = "docling-api"
+    
+    # Docling Service (GPU-accelerated docling-serve API)
+    DOCLING_SERVICE_URL: str = ""  # e.g. http://docling-serve:5001 or http://172.17.0.1:5001
+    
     # OCR Service (Marker API for PDF to Markdown)
     OCR_SERVICE_URL: str = ""  # e.g. http://marker-api:8001
     
