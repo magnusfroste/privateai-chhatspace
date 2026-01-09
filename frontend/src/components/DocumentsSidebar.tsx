@@ -100,7 +100,7 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
       
-      const embedPromise = api.documents.embed(doc.id, { signal: controller.signal })
+      const embedPromise = api.documents.embed(doc.id, { signal: controller.signal }) as Promise<Document>
       
       const updated = await embedPromise
       clearTimeout(timeoutId)
@@ -137,9 +137,9 @@ export default function DocumentsSidebar({ workspaceId, isOpen, isExpanded, onTo
             setTimeout(() => reject(new Error('Embedding timeout')), 30000) // 30 second timeout
           )
           
-          Promise.race([embedPromise, timeoutPromise]).then(updated => {
-            setDocuments(prev => prev.map(d => d.id === updated.id ? updated : d))
-            setEmbeddingStatus(prev => ({ ...prev, [updated.id]: 'success' }))
+          Promise.race([embedPromise, timeoutPromise]).then((updated: any) => {
+            setDocuments(prev => prev.map(d => d.id === (updated as Document).id ? (updated as Document) : d))
+            setEmbeddingStatus(prev => ({ ...prev, [(updated as Document).id]: 'success' }))
           }).catch(err => {
             console.error('Failed to embed document:', err)
             setEmbeddingStatus(prev => ({ ...prev, [uploadedDoc.id]: 'error' }))
