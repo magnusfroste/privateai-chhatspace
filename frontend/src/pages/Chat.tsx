@@ -116,6 +116,12 @@ export default function Chat() {
     chatInputRef.current?.setMessage(content)
   }
 
+  const handleOpenSource = (_filename: string) => {
+    // Open documents sidebar and expand it to show the source
+    setShowDocsSidebar(true)
+    setDocsExpanded(true)
+  }
+
   const handleToggleWebSearch = async () => {
     if (!currentWorkspace) return
     
@@ -481,6 +487,7 @@ export default function Chat() {
                         content={msg.content}
                         sources={msg.sources}
                         onSendToNotes={msg.role === 'assistant' ? handleSendToNotes : undefined}
+                        onOpenSource={handleOpenSource}
                       />
                     ))
                   )}

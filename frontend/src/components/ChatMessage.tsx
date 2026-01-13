@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Copy, Check, ChevronDown, ChevronUp, Globe, StickyNote, Database } from 'lucide-react'
+import { Copy, Check, ChevronDown, ChevronUp, Globe, StickyNote, Database, FileText } from 'lucide-react'
 import renderMarkdown from '../utils/renderMarkdown'
 
 interface ChatMessageProps {
@@ -7,6 +7,7 @@ interface ChatMessageProps {
   content: string
   sources?: Array<{ num: number; filename?: string; title?: string; url?: string; type: 'rag' | 'web' }>
   onSendToNotes?: (content: string) => void
+  onOpenSource?: (filename: string) => void
 }
 
 function UserMessage({ content }: { content: string }) {
@@ -45,7 +46,7 @@ function UserMessage({ content }: { content: string }) {
   )
 }
 
-export default function ChatMessage({ role, content, sources, onSendToNotes }: ChatMessageProps) {
+export default function ChatMessage({ role, content, sources, onSendToNotes, onOpenSource }: ChatMessageProps) {
   const isUser = role === 'user'
   const [copied, setCopied] = useState(false)
   const [sentToNotes, setSentToNotes] = useState(false)
@@ -93,7 +94,7 @@ export default function ChatMessage({ role, content, sources, onSendToNotes }: C
                     <Database className="w-3.5 h-3.5" />
                   )}
                   <span className="font-medium uppercase tracking-wide">
-                    Källor ({sources[0].type === 'web' ? 'WEB' : 'RAG'})
+                    Sources ({sources[0].type === 'web' ? 'WEB' : 'RAG'})
                   </span>
                 </div>
                 <div className="space-y-1">
@@ -107,12 +108,18 @@ export default function ChatMessage({ role, content, sources, onSendToNotes }: C
                           href={source.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex-1 hover:text-blue-400 transition-colors"
+                          className="flex-1 hover:text-blue-400 transition-colors cursor-pointer"
                         >
                           {source.title}
                         </a>
                       ) : (
-                        <span className="flex-1">{source.filename}</span>
+                        <button
+                          onClick={() => onOpenSource?.(source.filename || '')}
+                          className="flex-1 text-left hover:text-blue-400 transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <FileText className="w-3 h-3" />
+                          {source.filename}
+                        </button>
                       )}
                     </div>
                   ))}
