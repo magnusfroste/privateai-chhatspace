@@ -1,31 +1,54 @@
 # Chatspace - Private AI
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+
 A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generation) support. Successfully deployed on Easypanel with remote LLM and embedding services integration. Inspired by AnythingLLM and OpenWebUI, but simpler and focused on quality functionality.
+
+**Privacy-First**: All data stays on your infrastructure. No external data transmission except to your configured LLM/embedding services.
 
 ## Features
 
 - **Grok-like Chat UI** - Clean, dark-themed interface with streaming responses
 - **Private Workspaces** - Organize chats by topic/department with custom system prompts (private to owner + admins)
-- **RAG Support** - Upload documents, convert to markdown, embed to Qdrant
+- **RAG Support** - Upload documents, convert to markdown, embed to vector database
+- **Dual Vector Store** - Choose between Qdrant (hybrid search) or LanceDB (file-based)
+- **Advanced PDF Processing** - Docling API integration with OCR, table extraction, and code detection
+- **Intelligent Tool Calling** - LLM autonomously decides when to use web search
+- **Hybrid Search** - Semantic + keyword (BM25) search with cross-encoder reranking
 - **File Upload** - PDF, DOCX, TXT, MD support with automatic conversion
-- **Admin Panel** - User management, chat logs for debugging/development
+- **REST API v1** - Developer-friendly API with API key authentication
+- **A/B Test Evaluator** - Compare RAG system performance
+- **Admin Panel** - User management, chat logs, API keys for debugging/development
 - **Remote LLM Integration** - Connects to external OpenAI-compatible LLM APIs
 - **Remote Embeddings** - Uses external embedding services for vector generation
 - **Easypanel Ready** - Single container deployment with persistent storage
 
 ## Quick Start
 
-### Docker Compose (Local Development)
+### Docker Compose (Recommended)
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/magnusfroste/privateai-chatspace.git
+cd privateai-chatspace
+
+# 2. Copy and configure environment
+cp .env.example .env
+# Edit .env with your LLM/Embedder URLs and API keys
+
+# 3. Start the application
 docker-compose up --build
 ```
 
 Access at `http://localhost:8000`
 
-Default credentials:
+**Default credentials:**
 - Email: `admin@localhost`
 - Password: `changeme`
+
+⚠️ **Important**: Change these credentials in production!
 
 ### Easypanel Deployment
 
@@ -66,8 +89,11 @@ Default credentials:
 ### Vector Database & Search
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `QDRANT_URL` | `http://172.17.0.1:6333` | Qdrant vector database |
+| `QDRANT_URL` | `http://172.17.0.1:6333` | Qdrant vector database (hybrid search support) |
+| `LANCEDB_DIR` | `/data/lancedb` | LanceDB file-based vector database directory |
+| `VECTOR_STORE_TYPE` | `qdrant` | Vector store type: "qdrant" or "lancedb" |
 | `SEARCH_AGENT_URL` | (empty) | n8n webhook URL for web search |
+| `DOCLING_API_URL` | (empty) | Docling API URL for advanced PDF processing |
 | `OCR_SERVICE_URL` | (empty) | Marker API URL for PDF OCR (e.g., `http://marker-api:8001`) |
 
 ### Default RAG Settings (for new workspaces)
@@ -220,13 +246,23 @@ cd frontend
 npm run dev
 ```
 
+## Key Technologies
+
+- **Backend**: FastAPI, SQLAlchemy, Python 3.10+
+- **Frontend**: React, TypeScript, TailwindCSS
+- **Vector Stores**: Qdrant (hybrid search), LanceDB (file-based)
+- **PDF Processing**: Docling API (OCR, tables, code), Marker API, PyPDF2
+- **Search**: Hybrid semantic + BM25, cross-encoder reranking
+- **LLM Integration**: OpenAI-compatible API (vLLM, Ollama, etc.)
+- **Deployment**: Docker, Docker Compose, Easypanel
+
 ## Future Enhancements
 
-- [ ] Docling integration for better document conversion
 - [ ] Paperless integration for document import
 - [ ] Multiple LLM provider support
 - [ ] Chat export/import
 - [ ] Shared workspaces between users
+- [ ] Advanced analytics dashboard
 
 ## License
 

@@ -42,7 +42,10 @@ Chatspace - Private AI is an AI-driven chat application built for teams that nee
 #### RAG (Workspace-scoped)
 - **Document Upload**: Support for PDF, DOCX, TXT, MD file formats per workspace
 - **Automatic Conversion**: Documents converted to markdown for processing
-- **Hybrid Vector Embeddings**: Qdrant-based vector storage supporting both dense and sparse search
+- **Dual Vector Store Support**: Choose between Qdrant or LanceDB
+  - **Qdrant**: High-performance with hybrid search (dense + sparse BM25)
+  - **LanceDB**: File-based, serverless, embedded vector database
+- **Admin-Configurable**: Switch vector stores from Admin → Settings
 - **Context Injection**: Relevant document chunks added to LLM prompts
 - **Configurable Retrieval**: Adjustable top_n chunks, similarity threshold, and search type
 - **Scope**: Available for all chats within the workspace
@@ -120,36 +123,61 @@ if tool_calls:
 #### Advanced Document Processing
 - **Multi-file Upload**: Upload multiple PDF, DOCX, TXT, MD files simultaneously
 - **Batch Processing**: Efficient processing of multiple documents with progress tracking
-- **OCR Support**: Marker API integration for scanned PDF processing
+- **Advanced PDF Processing**: Multiple processing pipelines
+  - **Docling API**: Primary processor with OCR, table extraction, code detection
+  - **Marker API**: Alternative OCR processor for scanned documents
+  - **PyPDF2**: Fallback for basic text extraction
+- **Semantic Chunking**: Intelligent text splitting respecting document structure
+  - Splits by headers (##, ###) to preserve context
+  - Keeps tables intact (never splits mid-table)
+  - Respects paragraph boundaries
+  - Filters tiny chunks (<50 chars)
 - **File Browser**: Upload, view, and manage documents per workspace
 - **Embedding Status**: Track which documents have been processed for RAG
 - **Bulk Operations**: Embed all documents at once with progress tracking
 - **File Deletion**: Remove documents and associated embeddings
-- **Metadata Tracking**: File size, upload date, embedding status
+- **Metadata Tracking**: File size, upload date, embedding status, content type
 
 #### PDF Processing Pipeline
 ```bash
 # 1. Upload → Original storage
 uploaded_file.pdf → /data/documents/originals/
 
-# 2. OCR Processing (if Marker API configured)
+# 2. Advanced Processing (priority order)
+# Option A: Docling API (best quality)
+docling_api.process(uploaded_file.pdf, 
+  do_ocr=true, 
+  do_table_structure=true,
+  do_code_enrichment=true) → rich_markdown
+
+# Option B: Marker API (OCR fallback)
 marker_api.process(uploaded_file.pdf) → markdown_content
 
-# 3. Fallback (if no OCR)
+# Option C: PyPDF2 (basic fallback)
 PyPDF2.extract_text(uploaded_file.pdf) → basic_text
 
-# 4. Markdown Storage
+# 3. Markdown Storage
 markdown_content → /data/documents/markdown/
 
-# 5. Chunking & Embedding
-text_chunks → Qdrant vector database
+# 4. Semantic Chunking
+text → split_by_headers() → preserve_tables() → chunks
+
+# 5. Rich Metadata Extraction
+chunks → analyze_content_type() → metadata
+# Metadata: content_type, section_title, has_table, has_code, word_count
+
+# 6. Vector Embedding
+chunks + metadata → vector_store (Qdrant or LanceDB)
 ```
 
-#### OCR Configuration
-- **Marker API**: `OCR_SERVICE_URL=https://marker.autoversio.ai`
-- **Automatic Fallback**: Uses basic PyPDF2 if OCR unavailable
-- **Scanned Document Support**: Handles image-based PDFs
-- **Quality Enhancement**: Improved text extraction accuracy
+#### PDF Processing Configuration
+- **Docling API**: `DOCLING_API_URL` - Advanced processing with OCR, tables, code
+  - Parameters: `do_ocr`, `do_table_structure`, `do_code_enrichment`, `generate_picture_images`
+  - Timeout: 600s for complex PDFs
+- **Marker API**: `OCR_SERVICE_URL` - Alternative OCR processor
+- **Automatic Fallback**: Uses PyPDF2 if external services unavailable
+- **Scanned Document Support**: Full OCR capabilities for image-based PDFs
+- **Quality Enhancement**: Superior text extraction with structure preservation
 
 ### 7. LLM Integration
 - **OpenAI-compatible API**: Generic LLM service supporting any OpenAI-compatible endpoint
@@ -205,10 +233,40 @@ text_chunks → Qdrant vector database
 ```
 
 ### 10. Vector Database Integration
-- **Qdrant Support**: High-performance vector similarity search with hybrid capabilities
-- **Collection Management**: Automatic collection creation per workspace
+
+#### Dual Vector Store Architecture
+The system supports two vector database backends, selectable by administrators:
+
+**Qdrant (Default)**
+- **High-performance**: Optimized for large-scale vector search
+- **Hybrid Search**: Dense (semantic) + Sparse (BM25 keyword) search
+- **Cross-encoder Reranking**: Improved result relevance
+- **Remote Deployment**: Runs as separate service
+- **Configuration**: `QDRANT_URL=http://qdrant:6333`
+- **Best For**: Production deployments, large document collections
+
+**LanceDB (Alternative)**
+- **File-based**: Embedded database, no separate service required
+- **Serverless**: Zero infrastructure overhead
+- **Dense Search Only**: Semantic search (no sparse/BM25)
+- **Local Storage**: `LANCEDB_DIR=/data/lancedb`
+- **Best For**: Development, small deployments, edge devices
+
+#### Vector Store Switching
+- **Admin Configuration**: Switch stores from Admin → Settings → Vector Store
+- **Instant Switching**: Both stores cached, switching is immediate
+- **Preserved Embeddings**: Documents remain embedded in both stores
+- **Setting Persistence**: Choice persists across container restarts
+- **Workspace Compatibility**: 
+  - Hybrid search: Qdrant only (LanceDB uses dense only)
+  - Reranking: Works on both
+  - Query expansion: Works on both
+
+#### Vector Store Features
+- **Collection Management**: Automatic collection/table creation per workspace
 - **Similarity Search**: Configurable top-k retrieval with score thresholds
-- **Hybrid Search**: Combination of semantic (dense) and keyword (sparse) search
+- **Rich Metadata**: Content type, section titles, word counts, structural flags
+- **Batch Operations**: Efficient bulk embedding and deletion
 
 ## 11. API Integration
 
@@ -500,7 +558,7 @@ EMBEDDER_API_KEY=your-embedder-api-key
 EMBEDDER_MODEL=default
 QDRANT_URL=http://qdrant:6333
 FIRECRAWL_API_KEY=your-firecrawl-key
-OCR_SERVICE_URL=https://marker.autoversio.ai
+OCR_SERVICE_URL=http://marker:8001
 DATABASE_URL=sqlite+aiosqlite:///data/chatspace.db
 ```
 

@@ -26,15 +26,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Calculates Recall@5, MRR, latency metrics
 
 - **RAG Enhancements**
-  - Hybrid search (dense + sparse BM25)
+  - Dual vector store support (Qdrant + LanceDB)
+    - Qdrant: Hybrid search (dense + sparse BM25)
+    - LanceDB: File-based, serverless alternative
+    - Admin-configurable switching
   - Cross-encoder reranking
   - Query expansion via LLM
-  - Semantic chunking (respects headers, tables)
+  - Rich metadata (content_type, section_title, has_table, has_code)
 
 - **PDF Processing**
-  - Docling API integration (OCR, tables, code)
-  - Marker API support
+  - Docling API integration (OCR, tables, code detection)
+    - Advanced parameters: do_ocr, do_table_structure, do_code_enrichment
+    - 600s timeout for complex PDFs
+  - Marker API support (alternative OCR)
   - PyPDF2 fallback
+  - Semantic chunking (respects headers, tables, paragraphs)
 
 - **Documentation**
   - API documentation (`docs/API.md`)
