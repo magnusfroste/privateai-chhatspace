@@ -31,8 +31,8 @@ A modern, self-hosted LLM chat application with RAG (Retrieval-Augmented Generat
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/magnusfroste/private-ai-chat-space.git
-cd private-ai-chat-space
+git clone https://github.com/magnusfroste/private-ai-chatspace.git
+cd private-ai-chatspace
 
 # 2. Copy and configure environment
 cp .env.example .env
@@ -55,7 +55,7 @@ Access at `http://localhost:8000`
 **Status**: Successfully deployed and operational.
 
 1. Create a new App in Easypanel
-2. Connect to GitHub repo: `https://github.com/magnusfroste/private-ai-chat-space`
+2. Connect to GitHub repo: `https://github.com/magnusfroste/private-ai-chatspace`
 3. Build method: Git (automatic builds)
 4. Set environment variables (copy from below)
 5. Mount persistent volume at `/data`
@@ -127,7 +127,7 @@ Access at `http://localhost:8000`
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                   Private AI Chat Space Container             │
+│                   Private AI Chatspace Container              │
 │  ┌─────────────────────────────────────────────────────────┐│
 │  │ FastAPI (Uvicorn)                                       ││
 │  │ - REST API (/api/*)                                     ││
