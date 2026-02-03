@@ -4,31 +4,29 @@
 # Shared Services (both systems use these)
 shared:
   llm:
-    base_url: "https://api.autoversio.ai/v1"
-    model: "autoversio"
-    api_key: "sk-7eC6fR7qpxQOXCK2kYfPWg"
+    base_url: "https://api.your-llm-service.com/v1"  # OpenAI-compatible LLM API
+    model: "your-model-name"
+    api_key: "your-llm-api-key-here"
   embedder:
-    base_url: "https://api.autoversio.ai/v1"
-    model: "embed"
-    api_key: "sk-7eC6fR7qpxQOXCK2kYfPWg"
+    base_url: "https://api.your-embedder-service.com/v1"  # OpenAI-compatible embedder API
+    model: "your-embedding-model"
+    api_key: "your-embedder-api-key-here"
 
 # AnythingLLM Configuration
-# Remote: https://chat.autoversio.ai (admin/12345678)
-# Local:  http://localhost:3001
+# Get API key from Settings → API Keys in your AnythingLLM instance
 anythingllm:
-  base_url: "https://chat.autoversio.ai"
-  api_key: "M1X0NJ0-SZ8M65G-NT6KFQD-12JTTPD"  # Get from Settings → API Keys
+  base_url: "http://localhost:3001"  # Your AnythingLLM instance
+  api_key: "your-anythingllm-api-key-here"
   workspace_slug: "rag-test"
 
 # Private AI Chatspace Configuration  
-# Remote: https://your-deployment.com
-# Local:  http://localhost:8000
+# Get API key from Admin → API Keys in your Private AI instance
 privateai:
-  base_url: "http://localhost:8000"
-  # Login: admin@autoversio.local / changeme
-  email: "admin@autoversio.local"
+  base_url: "http://localhost:8000"  # Your Private AI instance
+  api_key: "your-privateai-api-key-here"  # Format: pk_xxxxx
+  email: "admin@localhost"
   password: "changeme"
-  workspace_id: "2"  # rag-test workspace
+  workspace_id: "2"  # Your workspace ID
 
 # Evaluation Settings
 evaluation:

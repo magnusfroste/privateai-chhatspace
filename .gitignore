@@ -40,3 +40,6 @@ Thumbs.db
 # Project specific
 RAG_QUALITY_REPORT.md
 ONBOARDING.md
+
+# Evaluation configs with API keys
+evaluation/config.yaml
